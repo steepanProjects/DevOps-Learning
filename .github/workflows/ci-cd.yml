@@ -76,5 +76,5 @@ jobs:
 
       # 1️⃣2️⃣ Terraform Apply
       - name: Terraform Apply
-        run: terraform apply -var -auto-approve
+        run: terraform apply -auto-approve
         working-directory: infra
