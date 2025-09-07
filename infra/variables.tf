@@ -9,3 +9,9 @@ variable "dockerhub_username" {
   type        = string
   default     = "steepan"
 }
+
+variable "git_sha" {
+  description = "Git commit SHA for Docker image tag"
+  type        = string
+  default     = "latest"  # fallback
+}
