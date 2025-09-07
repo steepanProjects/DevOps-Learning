@@ -67,11 +67,14 @@ jobs:
       # 🔟 Terraform Init
       - name: Terraform Init
         run: terraform init
+        working-directory: infra
 
       # 1️⃣1️⃣ Terraform Plan
       - name: Terraform Plan
         run: terraform plan -out=tfplan
+        working-directory: infra
 
       # 1️⃣2️⃣ Terraform Apply
       - name: Terraform Apply
         run: terraform apply -var -auto-approve
+        working-directory: infra
