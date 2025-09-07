@@ -9,36 +9,69 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # 2️⃣ Set up Python
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.11"
 
+      # 3️⃣ Install dependencies
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install pytest
 
+      # 4️⃣ Run tests
       - name: Run Tests
         run: pytest test_app.py
 
+      # 5️⃣ Build Docker image
       - name: Build Docker Image
         run: |
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/devops-learning
           docker build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${{ github.sha }} .
 
+      # 6️⃣ Login to DockerHub
       - name: Login to DockerHub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      # 7️⃣ Push Docker image
       - name: Push Docker Image
         run: |
           IMAGE_NAME=${{ secrets.DOCKER_USERNAME }}/devops-learning
           docker push $IMAGE_NAME:latest
           docker push $IMAGE_NAME:${{ github.sha }}
+
+      # 8️⃣ Set up Terraform
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: "1.5.7"  # or your preferred version
+
+      # 9️⃣ Configure AWS credentials
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1  # replace with your region
+
+      # 🔟 Terraform Init
+      - name: Terraform Init
+        run: terraform init
+
+      # 1️⃣1️⃣ Terraform Plan
+      - name: Terraform Plan
+        run: terraform plan -out=tfplan
+
+      # 1️⃣2️⃣ Terraform Apply
+      - name: Terraform Apply
+        run: terraform apply -var -auto-approve
