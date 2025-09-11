@@ -22,3 +22,13 @@ output "application_url" {
   description = "URL to access the application"
   value       = "http://${aws_lb.flask_alb.dns_name}"
 }
+
+output "vpc_id" {
+  description = "ID of the VPC"
+  value       = aws_vpc.main.id
+}
+
+output "public_subnet_ids" {
+  description = "IDs of the public subnets"
+  value       = [aws_subnet.public_1.id, aws_subnet.public_2.id]
+}

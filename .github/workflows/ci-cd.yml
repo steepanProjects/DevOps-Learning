@@ -72,6 +72,8 @@ jobs:
       # 1️⃣1️⃣ Terraform Plan
       - name: Terraform Plan
         run: |
+          echo "Creating Terraform plan..."
+          echo "Note: Some resources may be replaced due to naming changes - this is expected and safe"
           terraform plan \
             -var="project_name=devops-learning" \
             -var="dockerhub_username=${{ secrets.DOCKER_USERNAME }}" \
@@ -79,7 +81,12 @@ jobs:
             -out=tfplan
         working-directory: infra
 
-      # 1️⃣2️⃣ Terraform Apply
+      # 1️⃣2️⃣ Show Terraform Plan
+      - name: Show Terraform Plan
+        run: terraform show -no-color tfplan
+        working-directory: infra
+
+      # 1️⃣3️⃣ Terraform Apply
       - name: Terraform Apply
         run: terraform apply tfplan
         working-directory: infra
