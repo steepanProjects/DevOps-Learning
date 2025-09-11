@@ -73,6 +73,7 @@ jobs:
       - name: Terraform Plan
         run: |
           terraform plan \
+            -var="project_name=devops-learning" \
             -var="dockerhub_username=${{ secrets.DOCKER_USERNAME }}" \
             -var="git_sha=${{ github.sha }}" \
             -out=tfplan

@@ -23,17 +23,31 @@ provider "aws" {
 }
 
 # ---------------------------
+# Data Sources
+# ---------------------------
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnets" "default" {
+  filter {
+    name   = "vpc-id"
+    values = [data.aws_vpc.default.id]
+  }
+}
+
+# ---------------------------
 # ECS Cluster
 # ---------------------------
 resource "aws_ecs_cluster" "this" {
-  name = "flask-cluster"
+  name = "${var.project_name}-cluster"
 }
 
 # ---------------------------
 # IAM Role for ECS Task Execution
 # ---------------------------
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "ecsTaskExecutionRole"
+  name = "${var.project_name}-ecsTaskExecutionRole"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -56,7 +70,7 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_policy" {
 # IAM Role for ECS Task
 # ---------------------------
 resource "aws_iam_role" "ecs_task_role" {
-  name = "ecsTaskRole"
+  name = "${var.project_name}-ecsTaskRole"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -74,7 +88,7 @@ resource "aws_iam_role" "ecs_task_role" {
 # CloudWatch Log Group
 # ---------------------------
 resource "aws_cloudwatch_log_group" "flask_logs" {
-  name              = "/ecs/flask-app"
+  name              = "/ecs/${var.project_name}-app"
   retention_in_days = 7
 }
 
@@ -82,9 +96,9 @@ resource "aws_cloudwatch_log_group" "flask_logs" {
 # Security Group for ALB
 # ---------------------------
 resource "aws_security_group" "alb_sg" {
-  name        = "alb-sg"
+  name        = "${var.project_name}-alb-sg"
   description = "Allow HTTP inbound traffic"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port   = 80
@@ -105,9 +119,9 @@ resource "aws_security_group" "alb_sg" {
 # Security Group for ECS Service
 # ---------------------------
 resource "aws_security_group" "ecs_sg" {
-  name        = "ecs-sg"
+  name        = "${var.project_name}-ecs-sg"
   description = "Allow inbound traffic from ALB"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
     from_port       = 5000
@@ -128,9 +142,9 @@ resource "aws_security_group" "ecs_sg" {
 # ALB
 # ---------------------------
 resource "aws_lb" "flask_alb" {
-  name               = "flask-alb"
+  name               = "${var.project_name}-alb"
   load_balancer_type = "application"
-  subnets            = var.subnet_ids
+  subnets            = data.aws_subnets.default.ids
   security_groups    = [aws_security_group.alb_sg.id]
 }
 
@@ -138,10 +152,10 @@ resource "aws_lb" "flask_alb" {
 # Target Group
 # ---------------------------
 resource "aws_lb_target_group" "flask_tg" {
-  name        = "flask-tg"
+  name        = "${var.project_name}-tg"
   port        = 5000
   protocol    = "HTTP"
-  vpc_id      = var.vpc_id
+  vpc_id      = data.aws_vpc.default.id
   target_type = "ip"
 
   health_check {
@@ -172,7 +186,7 @@ resource "aws_lb_listener" "http" {
 # ECS Task Definition
 # ---------------------------
 resource "aws_ecs_task_definition" "flask_app" {
-  family                   = "flask-app"
+  family                   = "${var.project_name}-app"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = "256"
@@ -203,14 +217,14 @@ resource "aws_ecs_task_definition" "flask_app" {
 # ECS Service
 # ---------------------------
 resource "aws_ecs_service" "flask_service" {
-  name            = "flask-service"
+  name            = "${var.project_name}-service"
   cluster         = aws_ecs_cluster.this.id
   task_definition = aws_ecs_task_definition.flask_app.arn
   desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = var.subnet_ids
+    subnets         = data.aws_subnets.default.ids
     security_groups = [aws_security_group.ecs_sg.id]
     assign_public_ip = true
   }
