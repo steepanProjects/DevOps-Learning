@@ -71,10 +71,14 @@ jobs:
 
       # 1️⃣1️⃣ Terraform Plan
       - name: Terraform Plan
-        run: terraform plan -out=tfplan
+        run: |
+          terraform plan \
+            -var="dockerhub_username=${{ secrets.DOCKER_USERNAME }}" \
+            -var="git_sha=${{ github.sha }}" \
+            -out=tfplan
         working-directory: infra
 
       # 1️⃣2️⃣ Terraform Apply
       - name: Terraform Apply
-        run: terraform apply -auto-approve
+        run: terraform apply tfplan
         working-directory: infra

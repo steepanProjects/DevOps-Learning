@@ -18,7 +18,7 @@ variable "git_sha" {
 variable "subnet_ids" {
   description = "Subnet IDs for ECS tasks and ALB"
   type        = list(string)
-  default = "subnet-0e5c0731ddedc24ae"
+  default = ["subnet-0e5c0731ddedc24ae"]
 }
 variable "vpc_id" {
   description = "VPC ID where ECS and ALB will run"
