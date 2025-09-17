@@ -10,10 +10,10 @@ terraform {
 
   # Remote backend for Terraform state
   backend "s3" {
-    bucket         = "devops-learn-terraform-state"   # 🔹 Change this to your bucket name
+    bucket         = "devops-learn-terraform-state"  
     key            = "ecs/terraform.tfstate"
     region         = "ap-south-1"
-    dynamodb_table = "terraform-locks"             # 🔹 Make sure this DynamoDB table exists
+    dynamodb_table = "terraform-locks"             
     encrypt        = true
   }
 }
